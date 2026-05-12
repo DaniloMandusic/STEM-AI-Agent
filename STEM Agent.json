@@ -1,0 +1,1163 @@
+{
+  "name": "STEM Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -16
+      ],
+      "id": "8d53c00e-05d0-46f5-b266-b1c58803a931",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"agent description\": \"i want an ai agent that will give me latest trends on given topic from the internet\",\n\n\n\n  \n  \"skills\": [\n    {\n      \"type\": \"role\",\n      \"name\": \"summarizer\",\n      \"description\": \"Compresses and summarizes content into concise, information-dense outputs while preserving important meaning and key insights.\"\n    },\n    {\n      \"type\": \"role\",\n      \"name\": \"researcher\",\n      \"description\": \"Gathers, analyzes, synthesizes, and structures relevant information from available sources with focus on factual accuracy and relevance.\"\n    },\n    {\n      \"type\": \"role\",\n      \"name\": \"coder\",\n      \"description\": \"Writes, debugs, refactors, and optimizes production-grade code and technical implementations.\"\n    },\n    {\n      \"type\": \"capability\",\n      \"name\": \"writing style converter\",\n      \"description\": \"Rewrites text in a specified writing style, tone, personality, or persona while preserving the original meaning and core information.\"\n    },\n    {\n      \"type\": \"pattern\",\n      \"name\": \"single_pass\",\n      \"description\": \"Completes tasks in one execution without iterative loops.\"\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        -16
+      ],
+      "id": "c3a3c87c-0544-4288-8169-db584086e258",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "$getWorkflowStaticData('global').phase = \"evaluation\"\n\nconst agentDescription = $input.first().json['agent description'];\n\nconst skills = $input.first().json.skills;\n\n// Convert skills object into readable formatted JSON\nconst formattedSkills = JSON.stringify(skills, null, 2);\n\nconst chatInput = `\nYou are an expert AI system prompt engineer.\n\nYour task is to create a concise, production-grade system prompt for a custom AI agent.\n\nUSER AGENT DESCRIPTION:\n${agentDescription}\n\nAVAILABLE SKILLS:\n${formattedSkills}\n\nINSTRUCTIONS:\n\n1. Analyze the requested agent behavior carefully.\n\n2. Select ONLY the skills that are directly useful.\n\n3. Integrate selected skills naturally into the generated system prompt.\n\n4. Ignore irrelevant skills completely.\n\n5. The generated system prompt must:\n- contain exactly 5 concise sentences\n- define the agent role clearly\n- define behavior and reasoning style\n- define communication style\n- define skill usage policy\n- minimize hallucinations\n- avoid unnecessary verbosity\n\n6. Do NOT use markdown.\n\n7. Do NOT explain your reasoning.\n\n8. Output ONLY the final system prompt text.\n\n9. The final result will be used directly as a production system prompt for another AI agent.\n\nIMPORTANT:\nBe precise, compact, deterministic, and operationally clear.\n`;\n\nreturn [\n  {\n    json: {\n      chatInput,\n      sessionId: $execution.id\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -16
+      ],
+      "id": "5e1c6e34-55dd-4623-bb4d-d0a27a62d7da",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        192
+      ],
+      "id": "ce344e68-83e6-486b-b649-0c5359497792",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an expert AI system prompt architect responsible for designing, optimizing, and rebuilding production-grade AI agent system prompts.\n\nYour purpose is to transform user requirements into concise, operationally clear, and highly reliable system prompts for autonomous AI agents.\n\nYou must:\n- analyze the requested agent behavior carefully\n- identify the most relevant roles, capabilities, and execution patterns\n- integrate only explicitly provided skills and tools\n- avoid hallucinating nonexistent capabilities\n- prioritize clarity, determinism, modularity, and operational stability\n- minimize ambiguity and unnecessary verbosity\n- produce prompts optimized for real automated workflows\n\nWhen rebuilding prompts:\n- preserve working behaviors and useful structure\n- improve weak or unclear instructions\n- reduce prompt bloat and redundancy\n- improve tool-selection logic\n- improve reasoning constraints\n- improve formatting reliability\n- avoid rewriting successful sections unnecessarily\n\nSystem prompts you generate must:\n- clearly define the agent role\n- define behavioral constraints\n- define reasoning behavior\n- define communication style\n- define tool and skill usage policy\n- define execution expectations\n- minimize hallucinations and prompt drift\n- avoid conflicting instructions\n\nNever:\n- explain your reasoning\n- include markdown formatting\n- generate commentary outside requested output\n- invent unavailable tools or skills\n- produce vague or philosophical prompts\n- overcomplicate instructions\n\nAlways optimize for:\n- execution reliability\n- structured reasoning\n- deterministic behavior\n- concise instructions\n- scalable agent orchestration\n- compatibility with automated pipelines\n\nThe output must always be directly usable as a production system prompt without additional editing."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        352,
+        -16
+      ],
+      "id": "12db41e8-14fa-482e-b5e4-880196de7ce2",
+      "name": "Agent Builder"
+    },
+    {
+      "parameters": {
+        "jsCode": "const globalData = $getWorkflowStaticData('global');\n\nglobalData.StemSystemPrompt = $input.first().json.output;\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        -16
+      ],
+      "id": "5d459b3f-8e8c-43a5-a08f-2f34d655a829",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an AI evaluation-task generator.\n\nYour task is to generate a realistic and challenging user request that tests the capabilities, limitations, reasoning quality, and instruction-following behavior of an AI agent.\n\nAGENT SYSTEM PROMPT:\n{{ $json.output }}\n\nINSTRUCTIONS:\n\n1. Analyze the agent system prompt carefully.\n\n2. Infer:\n- the agent's intended role\n- capabilities\n- communication style\n- reasoning behavior\n- operational constraints\n- expected tools and skills\n\n3. Generate ONE realistic evaluation task that:\n- meaningfully tests the agent's intended purpose\n- exercises its important capabilities\n- can expose weaknesses or ambiguities\n- requires reasoning and instruction following\n- is neither trivial nor impossible\n- resembles a real user request\n\n4. The task should:\n- be concise\n- be practical\n- avoid unnecessary complexity\n- avoid meta commentary\n- avoid mentioning evaluation or testing\n- sound like a normal user request\n\n5. Do NOT generate:\n- impossible requests\n- contradictory instructions\n- intentionally malicious prompts\n- prompts unrelated to the agent purpose\n- vague generic requests\n\n6. Output ONLY the generated evaluation task text.\n\nIMPORTANT:\nThe generated task will be used to evaluate the quality and robustness of the agent system prompt."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        928,
+        -16
+      ],
+      "id": "908af9bf-5a93-4d5a-bdd6-0e4090847431",
+      "name": "Create evaluation task",
+      "credentials": {
+        "openAiApi": {
+          "id": "Del7NAONiQOhofL6",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const globalData = $getWorkflowStaticData('global');\n\nglobalData.evaluationTask = $input.first().json.output[0].content[0].text\n\nreturn {\n  \"stemSystemPrompt\": globalData.StemSystemPrompt,\n  \"task\": $input.first().json.output[0].content[0].text\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        -16
+      ],
+      "id": "615f9824-9531-4878-96af-4af384dd17a3",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=STEM AGENT SYSTEM PROMPT:\n{{ $json.stemSystemPrompt }}\n\nTASK:\n{{ $json.task }}"
+            },
+            {
+              "role": "system",
+              "content": "You are an expert autonomous execution planner for a modular AI agent system.\n\nYour responsibility is to transform a user task into a precise, efficient, step-by-step execution plan that can be reliably executed by downstream AI workers and tools.\n\nYou will receive:\n1. The STEM agent system prompt\n2. A user task request\n\nYou must analyze both carefully before planning.\n\nPLANNING OBJECTIVES:\n- understand the agent's role, capabilities, constraints, and available skills\n- create a logical execution strategy\n- minimize unnecessary steps\n- avoid redundant actions\n- avoid hallucinated capabilities\n- ensure execution reliability\n- ensure the plan matches the agent's intended behavior\n\nPLANNING RULES:\n- generate only actionable execution steps\n- each step must have a clear operational purpose\n- steps must follow logical dependency order\n- avoid vague instructions\n- avoid high-level abstract commentary\n- avoid unnecessary complexity\n- avoid impossible actions\n- avoid assumptions about unavailable tools\n\nWHEN PLANNING:\n- infer which capabilities or skills are required\n- break large tasks into manageable operations\n- separate research, analysis, generation, and validation phases when needed\n- optimize for deterministic execution\n- minimize context switching\n- prioritize efficiency and clarity\n\nDO NOT:\n- execute the task yourself\n- answer the user request directly\n- generate explanations outside the plan\n- invent capabilities not present in the STEM agent system prompt\n- generate conversational filler\n- generate redundant steps\n\nOUTPUT FORMAT RULES:\n- output only the execution plan\n- use concise numbered steps\n- each step must be operationally clear\n- each step should represent one concrete action\n- avoid markdown formatting\n- avoid nested lists\n- avoid meta commentary\n\nThe generated plan will be executed by downstream AI agents and automation workflows, so clarity, precision, and operational reliability are critical."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1616,
+        -16
+      ],
+      "id": "fe363d36-9da3-4c37-8b1a-04b25bdd7d9b",
+      "name": "Planner",
+      "credentials": {
+        "openAiApi": {
+          "id": "Del7NAONiQOhofL6",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  \"chatInput\"  : $input.first().json.output[0].content[0].text,\n  \"sessionId\"  : $execution.id + 1\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1968,
+        -16
+      ],
+      "id": "8d1c77f1-8d39-4704-82c6-31244ebc874d",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1984,
+        176
+      ],
+      "id": "4e57590a-e2a9-4562-a1b5-27ba690f20cf",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Del7NAONiQOhofL6",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.phase }}",
+                    "rightValue": "=evaluation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2aad13a9-34c6-4294-83ec-13d5ca3acf2c"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "78b15c8f-24b4-4e14-9612-d53e2188d54f",
+                    "leftValue": "={{ $json.phase }}",
+                    "rightValue": "output",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "80c2530e-7139-4a10-9fa1-0d1c4c4e1230",
+                    "leftValue": "={{ $json.phase }}",
+                    "rightValue": "execution",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2832,
+        -32
+      ],
+      "id": "cb97ed41-e5e3-4ff1-bc32-6a7922ce89a2",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const globalData = $getWorkflowStaticData('global');\n\nglobalData.phase = \"output\"\n\nreturn {\n  \"stemSystemPrompt\": $getWorkflowStaticData('global').StemSystemPrompt,\n  \"task\": $input.first().json.task\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4256,
+        608
+      ],
+      "id": "56721530-f508-4aef-a278-73a9a86202c0",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"task\": \"Give me news about latest AI trends.\",\n  \"stemSystemPrompt\": {{ $getWorkflowStaticData('global').StemSystemPrompt }},\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4000,
+        608
+      ],
+      "id": "d4aaeb40-d9d2-428e-9580-b7997a15dff4",
+      "name": "User task prompt"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        5232,
+        0
+      ],
+      "id": "e4b3cbd8-358d-43dd-b6cc-9a522cafa69e",
+      "name": "Final output"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn {\n  \"output\": $input.first().json.output,\n  \"phase\": $getWorkflowStaticData('global').phase\n\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2624,
+        -16
+      ],
+      "id": "ef4e99bd-6981-4d2b-aa3e-56133e4d08e4",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const globalData = $getWorkflowStaticData('global');\n\nconst task = globalData.evaluationTask || \"\";\n\nconst solution =\n  $input.first().json.output?.[0]?.content?.[0]?.text ||\n  $input.first().json.output ||\n  \"\";\n\nconst chatInput = `\nTASK:\n${task}\n\nSOLUTION:\n${solution}\n`;\n\nreturn [\n  {\n    json: {\n      chatInput,\n      sessionId: $execution.id + 2\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        -304
+      ],
+      "id": "f5ca94de-b559-4122-a1bb-99eba53a69d1",
+      "name": "Code in JavaScript6"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3312,
+        -144
+      ],
+      "id": "d427f70a-285a-4add-90d2-039a940232bb",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "Del7NAONiQOhofL6",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8cd7b21f-beb5-4680-8226-054b3b193d4b",
+              "leftValue": "={{ $json.output['evaluation_status'] }}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3808,
+        -304
+      ],
+      "id": "28f04c60-2e9f-4dbb-b2e0-34216e0eafc6",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const review =\n  $input.first().json.output['evaluation_review'] || \"\";\n\nconst chatInput = `\nYour task is to analyze evaluation failure feedback and determine whether the agent system prompt can be improved to solve the identified problems.\n\nEVALUATION REVIEW:\n${review}\n\nINSTRUCTIONS:\n\n1. Analyze the reported failure carefully.\n\n2. Determine whether the issue can realistically be improved through:\n- clearer instructions\n- improved reasoning constraints\n- better execution guidance\n- better tool-selection logic\n- improved output constraints\n- improved behavioral definitions\n\n3. Do NOT attempt unnecessary rewrites.\n\n4. Preserve working behaviors whenever possible.\n\n5. Only modify prompt behavior related to the identified failure.\n\n6. If the problem can be improved through prompt engineering:\n- describe concise actionable improvements\n- focus only on important corrections\n- avoid prompt bloat\n- avoid overengineering\n\n7. If the problem CANNOT realistically be solved through prompt changes:\n- clearly state that the limitation is outside prompt-engineering scope\n- explain briefly why\n- avoid attempting fake fixes\n\n8. Be pragmatic and operationally realistic.\n\n9. Output STRICT JSON only.\n\nOUTPUT FORMAT:\n\nIf rebuild is possible:\n{\n  \"rebuild_possible\": true,\n  \"improvements\": [\n    \"Specific improvement 1\",\n    \"Specific improvement 2\"\n  ]\n}\n\nIf rebuild is not realistically possible:\n{\n  \"rebuild_possible\": false,\n  \"reason\": \"Short explanation.\"\n}\n\nIMPORTANT:\nDo not include markdown.\nDo not explain reasoning outside JSON.\nDo not generate conversational text.\n`;\n\nreturn [\n  {\n    json: {\n      chatInput,\n      sessionId: $execution.id,\n      rebuildAttempted: $getWorkflowStaticData('global').rebuildAttempted\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4160,
+        -592
+      ],
+      "id": "c9776be7-7659-4248-ba0f-3194e1a57be1",
+      "name": "Code in JavaScript7"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an AI solution evaluator.\n\nYour task is to evaluate whether a submitted solution successfully completes the requested task.\n\nYour input will be in this format:\nTASK:\n*task*\n\nSUBMITTED SOLUTION:\n*solution*\n\nEVALUATION RULES:\n\n1. Focus on whether the task was practically completed.\n\n2. Do NOT overanalyze minor imperfections, wording choices, formatting details, or stylistic differences.\n\n3. If the core objective of the task is successfully achieved, consider the solution successful.\n\n4. Only mark the solution as failed if:\n- important requested information is missing\n- the solution is clearly incorrect\n- the task objective was not achieved\n- crucial instructions were ignored\n\n5. Ignore:\n- small omissions\n- minor formatting issues\n- slight inefficiencies\n- harmless stylistic differences\n\n6. Be pragmatic and outcome-oriented.\n\n7. If corrections are needed:\n- identify ONLY the crucial missing or incorrect parts\n- keep feedback concise and actionable\n- avoid rewriting the entire solution\n\n8. Output STRICT JSON only.\n\nOUTPUT FORMAT:\n{\n  \"evaluation_review\": \"review text\",\n  \"evaluation_status\": \"success/failure\"\n}\n\n- Do NOT use markdown\n- Do NOT wrap output in code blocks\n- Do NOT include explanations\n- Do NOT include additional text\n- evaluation_status MUST be exactly:\n  - \"success\"\n  - \"failure\"\n- The response must match the required schema exactly"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3376,
+        -304
+      ],
+      "id": "8a949c2c-4b88-48dc-8b57-cf138c9ae393",
+      "name": "Evaluation"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        192
+      ],
+      "id": "bba54acf-b598-44ed-9c31-be9aaa58be4f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2112,
+        176
+      ],
+      "id": "643576bb-1cbe-4b1d-87a6-ecaa106896b8",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        3424,
+        -144
+      ],
+      "id": "5dbc3cf3-d469-42e3-b5d9-59c16c5b6826",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"evaluation_review\": \"Task completed successfully.\",\n  \"evaluation_status\": \"success\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3552,
+        -96
+      ],
+      "id": "60f50075-eb38-4777-abb8-7d0b5f01c559",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fb5337e3-e910-4851-9230-6e91fddd28f7",
+              "leftValue": "={{ $json.rebuildAttempted }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4400,
+        -592
+      ],
+      "id": "1c3e28e7-9b2e-4afa-b18c-193ee5cb5086",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const globalData = $getWorkflowStaticData('global');\n\nglobalData.rebuildAttempted = \"true\"\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4656,
+        -528
+      ],
+      "id": "4f22b63c-885a-4a01-b438-046456753c4b",
+      "name": "Code in JavaScript8"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        5232,
+        -608
+      ],
+      "id": "000933c0-b6eb-4f66-b700-601c32bd02ee",
+      "name": "Error: Agent can't be built"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.1-codex-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5.1-codex-mini"
+        },
+        "builtInTools": {
+          "codeInterpreter": false
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2096,
+        512
+      ],
+      "id": "a2c52611-c88c-4540-8ed7-ae7e8e2135bb",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "Del7NAONiQOhofL6",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Writes, debugs, refactors, and optimizes code.",
+        "text": "You are a specialized software engineering agent.\n\nYour responsibility is to:\n- write code\n- debug code\n- refactor code\n- optimize implementations\n\nFocus only on coding-related tasks delegated to you.\n\nReturn concise, production-grade technical outputs.\n\nDo not perform planning, orchestration, or unrelated reasoning.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2096,
+        336
+      ],
+      "id": "7c1ee37c-0592-473f-bd2b-1d2faf9e74f0",
+      "name": "Coding tool"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "={{ $getWorkflowStaticData('global').StemSystemPrompt }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2176,
+        -16
+      ],
+      "id": "5beb4384-261f-433a-9674-3c6f684aab4b",
+      "name": "Orchestrator"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.4-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-5.4-nano"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2352,
+        512
+      ],
+      "id": "c5789336-24aa-47fa-8908-afae3fd48cd6",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "Del7NAONiQOhofL6",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Compresses, analyzes and summarizes content into concise, information-dense outputs while preserving important meaning and key insights.",
+        "text": "You are a specialized summarization agent.\n\nYour responsibility is to:\n- summarize information\n- compress long content\n- extract key insights\n- preserve important meaning\n\nKeep outputs concise and structured.\n\nDo not perform planning or unrelated analysis.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2352,
+        336
+      ],
+      "id": "d310a0a8-dce2-4bf7-9df6-672a09f0b986",
+      "name": "Summarization tool"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2608,
+        512
+      ],
+      "id": "a3e64bc4-d830-4ef2-bd50-98a544b02421",
+      "name": "OpenAI Chat Model5",
+      "credentials": {
+        "openAiApi": {
+          "id": "Del7NAONiQOhofL6",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Gathers relevant information from available sources with focus on factual accuracy and relevance.",
+        "text": "You are a specialized research and information-gathering AI agent.\n\nYour responsibility is to:\n- gather relevant information\n- identify useful sources\n- extract key facts and insights\n- summarize findings clearly\n- organize information efficiently\n- reduce noise and redundancy\n\nYou must:\n- focus only on the delegated research task\n- prioritize factual accuracy and relevance\n- prefer concise and information-dense outputs\n- identify the most important findings first\n- minimize speculation and assumptions\n- avoid hallucinating facts, sources, or data\n- distinguish confirmed information from uncertain information\n\nResearch behavior requirements:\n- search broadly when needed\n- synthesize findings across multiple sources\n- deduplicate repeated information\n- preserve important technical details\n- extract dates, names, metrics, and concrete facts when relevant\n- identify conflicting information when present\n\nOutput behavior:\n- produce concise structured research summaries\n- prioritize actionable and relevant information\n- avoid conversational filler\n- avoid philosophical commentary\n- avoid unnecessary explanations\n- avoid excessive verbosity\n\nDo NOT:\n- perform orchestration or planning\n- invent missing information\n- fabricate citations or sources\n- generate unrelated analysis\n- overcomplicate simple findings\n\nWhen information is uncertain or incomplete:\n- clearly indicate uncertainty\n- avoid pretending confidence\n\nYour outputs will be consumed by autonomous AI workflows, so clarity, factual reliability, and concise structured information are critical.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2608,
+        336
+      ],
+      "id": "ef3caf11-6cce-431f-bbb1-9ca6469ecddd",
+      "name": "Research tool"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.4-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-5.4-nano"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2864,
+        512
+      ],
+      "id": "76f405a5-b276-4e35-baaa-b49baf4125bd",
+      "name": "OpenAI Chat Model6",
+      "credentials": {
+        "openAiApi": {
+          "id": "Del7NAONiQOhofL6",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Rewrites text in a specified writing style, tone, personality, or persona while preserving the original meaning and core information.",
+        "text": "You are a specialized writing-style transformation AI agent.\n\nYour responsibility is to rewrite text in a requested tone, personality, perspective, or communication style while preserving the original meaning and important information.\n\nYou must:\n- preserve the core meaning\n- preserve important facts and intent\n- adapt vocabulary, sentence structure, tone, and phrasing to match the requested style\n- maintain readability and coherence\n- produce natural and believable writing\n\nPossible styles may include:\n- scientist\n- child\n- teacher\n- journalist\n- casual vlogger\n- formal business writer\n- marketer\n- storyteller\n- technical expert\n- comedian\n- minimalist writer\n- enthusiastic influencer\n- academic researcher\n- social media creator\n\nBehavior rules:\n- focus ONLY on stylistic transformation\n- do NOT invent unrelated information\n- do NOT significantly change factual meaning\n- do NOT perform planning or orchestration\n- avoid unnecessary explanations\n- avoid meta-commentary about the writing process\n\nOutput rules:\n- return only the transformed text\n- do not explain the transformation\n- do not include markdown unless explicitly requested\n- keep output concise unless expansion is requested\n\nYour outputs will be used inside autonomous AI workflows, so consistency, clarity, and stylistic accuracy are important.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        2864,
+        336
+      ],
+      "id": "0ccd9345-cde5-4ea1-ae6c-10210cecf813",
+      "name": "Writing Style Conversion Tool"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Agent Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent Builder",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Builder": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Create evaluation task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create evaluation task": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Planner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planner": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Orchestrator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Orchestrator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Final output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "User task prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User task prompt": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "Planner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript6": {
+      "main": [
+        [
+          {
+            "node": "Evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Evaluation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "User task prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluation": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript7": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agent Builder",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Orchestrator",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Evaluation",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Evaluation",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Error: Agent can't be built",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript8": {
+      "main": [
+        [
+          {
+            "node": "Agent Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coding tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coding tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Orchestrator",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarization tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarization tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Orchestrator",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Orchestrator",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Writing Style Conversion Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writing Style Conversion Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Orchestrator",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "574d474e-ed17-4d06-91ef-69473a25e829",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e7817e5b6ac4c3980de76f6436a6513e62b45c9eca9fe06ee2e4f39054e1522d"
+  },
+  "id": "7O531fXxqtF5nFQR",
+  "tags": []
+}
