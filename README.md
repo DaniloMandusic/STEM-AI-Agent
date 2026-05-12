@@ -20,8 +20,8 @@ AI agent that becomes specialized for solving a class of problems based on user 
 
 ## Quick Start
 - **Agent description** and **user task prompt** need to be set up before workflow execution
-- First **Edit Fields** node parameter "agent description" is description of wanted agent (eg. AI agent that will search the internet for latest trends.)
-- **User task prompt** node "task" parameter is specific task for custom agent (eg. Research the latest EV trends.)
+- First **Edit Fields** node - parameter "agent description" is description of wanted agent (eg. AI agent that will search the internet for latest trends.)
+- **User task prompt** node - "task" parameter is specific task for custom agent (eg. Research the latest EV trends.)
 - Task solution will be displayed in **Final Output** node
 - If AI agent can't be realistically created based on agent description with currently implemented tools, error message will be displayed in **Error: Agent can't be built** node
 
